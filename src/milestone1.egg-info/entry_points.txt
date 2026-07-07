@@ -1,0 +1,2 @@
+[console_scripts]
+milestone1 = milestone1.phase0.cli:cli

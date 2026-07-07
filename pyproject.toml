@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "milestone1"
+version = "0.1.0"
+description = "Zomato AI Restaurant Recommendation System"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic>=2.0",
+    "pydantic-settings",
+    "python-dotenv",
+    "click",
+    "datasets",
+    "openai",
+    "httpx",
+]
+
+[project.optional-dependencies]
+streamlit = ["streamlit"]
+test = ["pytest", "pytest-asyncio", "httpx"]
+
+[project.scripts]
+milestone1 = "milestone1.phase0.cli:cli"

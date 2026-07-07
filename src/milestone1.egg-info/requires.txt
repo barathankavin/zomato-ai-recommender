@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pydantic>=2.0
+pydantic-settings
+python-dotenv
+click
+datasets
+openai
+httpx
+
+[streamlit]
+streamlit
+
+[test]
+pytest
+pytest-asyncio
+httpx
