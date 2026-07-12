@@ -101,7 +101,7 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 bg-glass-surface backdrop-blur-md shadow-sm border-b border-glass-border">
         <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-[1440px] mx-auto hidden md:flex relative z-10">
           <div className="flex items-center gap-3 font-display-xl text-[28px] font-bold tracking-tight">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Zomato_logo.png/600px-Zomato_logo.png" alt="Zomato Logo" className="h-6 w-auto" />
+            <img src="/zomato-logo.png" alt="Zomato Logo" className="h-9 w-9 rounded-lg object-cover" />
             <span className="text-white">AI</span>
           </div>
           <div className="flex gap-8 items-center font-body-md text-body-md">
