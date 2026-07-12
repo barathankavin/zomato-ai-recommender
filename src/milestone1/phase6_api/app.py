@@ -25,7 +25,7 @@ from milestone1.phase2_preferences.models import UserPreferences
 from milestone1.phase2_preferences.cities import allowed_cities_from_restaurants, fuzzy_match_city
 from milestone1.phase4_llm.recommend import recommend
 from milestone1.phase5_output.telemetry import emit_telemetry
-from milestone1.phase6_api.corpus import get_corpus
+from milestone1.phase6_api.corpus import get_corpus, get_corpus_size
 from milestone1.phase6_api.schemas import (
     RecommendationRequest,
     RecommendationResponse,
@@ -53,17 +53,25 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    """Lightweight root so platform probes don't 404."""
+    return {"status": "ok"}
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health():
     """Health check — reports Groq config and corpus status."""
     settings = load_settings()
-    corpus = get_corpus()
+    # Avoid loading the full corpus during platform health probes.
+    # Corpus is loaded lazily on /api/v1/meta and /api/v1/recommendations.
+    corpus_size = get_corpus_size() or 0
     return HealthResponse(
         status="ok",
         groq_configured=bool(
             settings.groq_api_key and settings.groq_api_key != "your_groq_api_key_here"
         ),
-        corpus_size=len(corpus),
+        corpus_size=corpus_size,
     )
 
 

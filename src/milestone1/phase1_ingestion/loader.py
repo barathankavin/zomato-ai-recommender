@@ -1,4 +1,4 @@
-"""Dataset loader — streams from HuggingFace and normalises rows.
+"""Dataset loader — prefers local JSON, falls back to HuggingFace.
 
 Edge cases handled:
 - HuggingFace unreachable → DatasetLoadError
@@ -9,7 +9,9 @@ Edge cases handled:
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 from typing import Optional
 
 from milestone1.phase1_ingestion.models import Restaurant
@@ -25,6 +27,7 @@ from milestone1.phase1_ingestion.normalizer import (
 logger = logging.getLogger(__name__)
 
 DATASET_ID = "ManikaSaini/zomato-restaurant-recommendation"
+LOCAL_CORPUS_PATH = Path(__file__).resolve().parents[3] / "data" / "restaurants.json"
 
 
 class DatasetLoadError(Exception):
@@ -87,8 +90,39 @@ def _deduplicate(restaurants: list[Restaurant]) -> list[Restaurant]:
     return list(best.values())
 
 
+def _local_corpus_paths() -> list[Path]:
+    return [
+        LOCAL_CORPUS_PATH,
+        Path.cwd() / "data" / "restaurants.json",
+    ]
+
+
+def _load_from_local(limit: int | None = None) -> list[Restaurant] | None:
+    """Load prebuilt corpus from disk if present (low-memory path for free hosts)."""
+    path = next((p for p in _local_corpus_paths() if p.exists()), None)
+    if path is None:
+        return None
+
+    logger.info("Loading restaurant corpus from %s", path)
+    with path.open(encoding="utf-8") as f:
+        rows = json.load(f)
+
+    restaurants = [Restaurant.model_validate(row) for row in rows]
+    if limit is not None:
+        restaurants = restaurants[:limit]
+
+    if not restaurants:
+        raise EmptyDatasetError("Local corpus has zero restaurants.")
+
+    logger.info("Loaded %d restaurants from local corpus", len(restaurants))
+    return restaurants
+
+
 def load_restaurants(limit: int | None = None) -> list[Restaurant]:
     """Load, normalise and deduplicate the Zomato dataset.
+
+    Prefers ``data/restaurants.json`` when available to avoid HuggingFace/pyarrow
+    memory spikes on small free-tier hosts.
 
     Args:
         limit: If set, only process this many rows (useful for dev/testing).
@@ -100,9 +134,13 @@ def load_restaurants(limit: int | None = None) -> list[Restaurant]:
         DatasetLoadError: If dataset cannot be fetched.
         EmptyDatasetError: If no valid rows remain after cleaning.
     """
+    local = _load_from_local(limit=limit)
+    if local is not None:
+        return local
+
     try:
         from datasets import load_dataset
-        ds = load_dataset(DATASET_ID, split="train", trust_remote_code=True)
+        ds = load_dataset(DATASET_ID, split="train")
     except Exception as exc:
         raise DatasetLoadError(
             f"Failed to load dataset '{DATASET_ID}': {exc}"

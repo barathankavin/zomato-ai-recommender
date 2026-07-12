@@ -17,6 +17,11 @@ _lock = threading.Lock()
 _corpus: list[Restaurant] | None = None
 
 
+def get_corpus_size() -> int | None:
+    """Return cached corpus size without triggering a load."""
+    return len(_corpus) if _corpus is not None else None
+
+
 def get_corpus() -> list[Restaurant]:
     """Get the restaurant corpus, loading it if necessary.
 
