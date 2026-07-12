@@ -12,4 +12,4 @@ services:
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
       - key: CORS_ORIGINS
-        value: https://your-app.vercel.app
+        value: https://zomato-ai-recommender-fnxt.vercel.app
